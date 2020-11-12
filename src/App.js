@@ -1,50 +1,48 @@
-import React, { Component } from "react"
-import logo from "./logo.svg"
-import "./App.css"
+import React from "react";
+import styled from "styled-components";
+import WithPanier from "./context/WithPanier";
 
-class LambdaDemo extends Component {
-  constructor(props) {
-    super(props)
-    this.state = { loading: false, msg: null }
-  }
+import { Elements, StripeProvider } from "react-stripe-elements";
 
-  handleClick = api => e => {
-    e.preventDefault()
+import "typeface-germania-one";
+import "typeface-zilla-slab";
+import "typeface-lato";
+import "sanitize.css";
 
-    this.setState({ loading: true })
-    fetch("/.netlify/functions/" + api)
-      .then(response => response.json())
-      .then(json => this.setState({ loading: false, msg: json.msg }))
-  }
+import Header from "./components/Header";
+import LivreItem from "./components/LivreItem";
+import Panier from "./components/Panier";
+import ChekoutForm from "./components/CheckoutForm"; 
 
-  render() {
-    const { loading, msg } = this.state
+const Layout = styled.div`
+  border: 5px solid GAINSBORO;
+  background: DARKSLATEGRAY;
+  color: GAINSBORO;
+  font-family: "lato", sans-serif;
+  padding-bottom: 64px;
+`;
 
-    return (
-      <p>
-        <button onClick={this.handleClick("hello")}>{loading ? "Loading..." : "Call Lambda"}</button>
-        <button onClick={this.handleClick("async-dadjoke")}>{loading ? "Loading..." : "Call Async Lambda"}</button>
-        <br />
-        <span>{msg}</span>
-      </p>
-    )
-  }
-}
+const App = ({ context }) => (
+  <Layout>
+    <Header />
 
-class App extends Component {
-  render() {
-    return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <LambdaDemo />
-        </header>
+      {
+        context.state.livres && Object.keys(context.state.livres).map(id => {
+          const livre = context.state.livres[id]
+          return <LivreItem keys={id} livre={livre} />;
+        })
+      }
+
+    <Panier />
+
+    <StripeProvider apiKey="pk_test_51HmJpYGYDDccV3BZgtIjuGb6XPvZjYNndwEKI6LUnN60oBjVZv0PoXZn1pc2FkNdnjYteczQnzPoEH8Y4U4t7bdB00eDt48FBP">
+      <div id="checkout">
+        <Elements>
+            <ChekoutForm prixTotal={ context.state.prixTotal }/>
+        </Elements>
       </div>
-    )
-  }
-}
+    </StripeProvider>
+  </Layout>
+);
 
-export default App
+export default WithPanier(App);
